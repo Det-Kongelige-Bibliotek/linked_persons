@@ -4,6 +4,7 @@ module KBA
 end
 
 require_relative 'kba/errors'
+require_relative 'kba/vocab'
 
 require_relative 'mixins/base'
 require_relative 'mixins/encoding'
