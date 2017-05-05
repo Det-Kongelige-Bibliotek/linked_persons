@@ -1,11 +1,11 @@
-class KBA::Person < RDF::LDP::RDFSource
-  include KBA::Base
-  include KBA::Aggregatable
+class LP::Person < RDF::LDP::RDFSource
+  include LP::Base
+  include LP::Aggregatable
 
   TYPE_URI = RDF::Vocab::SCHEMA.Person.freeze
   # TOPIC_URI = RDF::Vocab::FOAF.primaryTopic.freeze
 
-  # include KBA::RDFSource
+  # include LP::RDFSource
 
   ##
   # Creates the document for 
@@ -17,7 +17,7 @@ class KBA::Person < RDF::LDP::RDFSource
   # @return self
   def create_from_uri_str(uri_str)
 
-    resource = KBA::Resource.new(uri_str, @data)
+    resource = LP::Resource.new(uri_str, @data)
     resource.dereference
     # TODO: Validate
     self.same_as_uris = resource.same_as_uris + [resource.subject_uri]

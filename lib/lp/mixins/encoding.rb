@@ -1,4 +1,4 @@
-module KBA::Encoding
+module LP::Encoding
 
   def encode(uri)
     ERB::Util.url_encode(uri.to_s)

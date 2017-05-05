@@ -5,7 +5,7 @@
 #   - Discarding data in all languages but English and Danish.
 #  
 
-class KBA::Resource < RDF::LDP::RDFSource
-  include KBA::Base
-  include KBA::Dereferencable
+class LP::Resource < RDF::LDP::RDFSource
+  include LP::Base
+  include LP::Dereferencable
 end

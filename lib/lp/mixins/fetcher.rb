@@ -3,7 +3,7 @@ require 'net/http'
 ##
 # Mixin for fetching resources identified with URIs. 
 #
-module KBA::Fetcher
+module LP::Fetcher
 
   CONTENT_TYPES = ['text/turtle', 'application/ld+json'].freeze
 
@@ -13,11 +13,11 @@ module KBA::Fetcher
   # @param [String] uri_str - The URI to be fetched as a String.
   # @param [Integer] limit - The maximum number of redirections allowed.
   # @see http://ruby-doc.org/stdlib-2.4.0/libdoc/net/http/rdoc/Net/HTTP.html
-  # @raise KBA::TooManyRedirects - When the redirect limit is exceeded. 
-  # @raise KBA::CouldNotFetch - When the resource cannot be fetched. 
+  # @raise LP::TooManyRedirects - When the redirect limit is exceeded. 
+  # @raise LP::CouldNotFetch - When the resource cannot be fetched. 
   def fetch(uri_str, limit = 10)
   
-    raise KBA::TooManyRedirects if limit == 0
+    raise LP::TooManyRedirects if limit == 0
 
     request = Net::HTTP::Get.new(uri_str)
     request['Accept'] = CONTENT_TYPES.join(', ')
@@ -33,13 +33,13 @@ module KBA::Fetcher
     when Net::HTTPSuccess then
       
       if ! CONTENT_TYPES.include?(response.content_type)
-        raise KBA::Errors::UnsupportedContentType, response.content_type
+        raise LP::Errors::UnsupportedContentType, response.content_type
       end
       response
 
     when Net::HTTPRedirection then
       location = response['location']      
-      raise KBA::CouldNotFetch, uri_str if !location
+      raise LP::CouldNotFetch, uri_str if !location
       
       location_uri = RDF::URI(location)
 
@@ -51,7 +51,7 @@ module KBA::Fetcher
       fetch(location_uri.to_s, limit - 1)
 
     else
-      raise KBA::CouldNotFetch, uri_str
+      raise LP::CouldNotFetch, uri_str
     end
   end
 

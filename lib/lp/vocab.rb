@@ -1,7 +1,7 @@
 ## 
 # Used vocabularies that are not available through RDF::Vocab.
 #
-module KBA::Vocab
+module LP::Vocab
   class << self
 
     def wdata
@@ -18,3 +18,4 @@ module KBA::Vocab
 
   end
 end
+

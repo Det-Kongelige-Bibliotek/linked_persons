@@ -1,4 +1,4 @@
-module KBA::Errors 
+module LP::Errors 
 
   class BadParameters < RDF::LDP::BadRequest    
     def message()

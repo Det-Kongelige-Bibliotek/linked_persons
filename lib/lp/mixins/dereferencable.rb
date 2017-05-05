@@ -1,5 +1,5 @@
-module KBA::Dereferencable
-  include KBA::Fetcher
+module LP::Dereferencable
+  include LP::Fetcher
     
   def self.included(base)
     base.extend(ClassMethods)
@@ -29,7 +29,7 @@ module KBA::Dereferencable
   # end
 
   def dereference
-    raise KBA::Errors::AlreadyExists, subject_uri if exists?
+    raise LP::Errors::AlreadyExists, subject_uri if exists?
 
     response = fetch(subject_uri.to_s)
     create(StringIO.new(response.body), response.content_type)

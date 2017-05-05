@@ -1,4 +1,4 @@
-module KBA::Base
+module LP::Base
 
   ##
   # @return [Array<RDF::URI>] An array of URIs that

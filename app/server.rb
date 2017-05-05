@@ -3,7 +3,7 @@ Bundler.require
 require 'sinatra'
 require 'rack/ldp'
 require 'net/http'
-require_relative '../lib/kba'
+require_relative '../lib/linked_persons'
 
 module App
   class Server < Sinatra::Base
@@ -45,11 +45,11 @@ module App
       uri_param = params[:uri]
       case uri_param
       when String then
-        KBA::Person.new(relative_uri).create_from_uri_str(uri_param)
+        LP::Person.new(relative_uri).create_from_uri_str(uri_param)
       when Array then 
-        KBA::Container.new(relative_uri).create_from_uri_strs(uri_param)  
+        LP::Container.new(relative_uri).create_from_uri_strs(uri_param)  
       else
-        raise KBA::Errors::BadParameters
+        raise LP::Errors::BadParameters
       end 
         
     end

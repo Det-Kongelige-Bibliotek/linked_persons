@@ -1,4 +1,4 @@
-module KBA::Aggregatable
+module LP::Aggregatable
   
   SOURCE_URI_ROOTS = [ 'http://www.wikidata.org/', 
                        'https://www.wikidata.org/',
@@ -31,11 +31,11 @@ module KBA::Aggregatable
   def aggregate
 
     source_uris.each do |uri|
-      resource = KBA::Resource.new(uri, @data)
+      resource = LP::Resource.new(uri, @data)
       
       begin
         resource.dereference
-      rescue KBA::Errors::AlreadyExists => e
+      rescue LP::Errors::AlreadyExists => e
         p e.message
       end
 
