@@ -25,13 +25,11 @@ module LP::Aggregatable
     @aggregated ||= false
   end
 
-  # TODO: Dereference each URI in source_uris, 
-  # and extract the relevant data.
-  # Handle AlreadyExists errors when dereferencing.
   def aggregate
 
     source_uris.each do |uri|
-      resource = LP::Resource.new(uri, @data)
+      # resource = LP::Resource.new(uri, @data)
+      resource = LP::Resource.new(uri, RDF::Repository.new)
       
       begin
         resource.dereference
@@ -48,6 +46,12 @@ module LP::Aggregatable
       end
 
     end 
+
+    # TODO: Retrieve the relevant information via SPARQL queries. 
+    #   solutions = SPARQL.execute("SELECT * WHERE { ?s ?p ?o }", resource.graph).
+    #   solutions.each do |sol|
+    #     graph << RDF::Statement(sol.s, sol.p, sol.o, graph_name: subject_uri) 
+    #   end
 
     @aggregated = true
   end
