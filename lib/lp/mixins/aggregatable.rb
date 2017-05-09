@@ -28,8 +28,10 @@ module LP::Aggregatable
   def aggregate
 
     source_uris.each do |uri|
-      # resource = LP::Resource.new(uri, @data)
-      resource = LP::Resource.new(uri, RDF::Repository.new)
+      # Temporarily using a single RDF::Repository 
+      # as an in-memory cache.
+      resource = LP::Resource.new(uri, @data)
+      # resource = LP::Resource.new(uri, RDF::Repository.new)
       
       begin
         resource.dereference
