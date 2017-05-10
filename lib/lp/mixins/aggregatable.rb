@@ -1,9 +1,11 @@
 module LP::Aggregatable
   
-  SOURCE_URI_ROOTS = [ 'http://www.wikidata.org/', 
-                       'https://www.wikidata.org/',
-                       'http://viaf.org/',
-                       'https://viaf.org/', ].freeze
+  SOURCE_URI_ROOTS = [ 
+    'http://www.wikidata.org/', 
+    'https://www.wikidata.org/',
+    'http://viaf.org/',
+    'https://viaf.org/', 
+  ].freeze
 
   def self.included(base)
     base.extend(ClassMethods)
@@ -47,8 +49,9 @@ module LP::Aggregatable
           graph_name: subject_uri)
       end
 
+      t = Time.now
       extract_from_resource(resource)
-
+      p Time.now - t
     end 
 
     @aggregated = true
@@ -62,11 +65,11 @@ module LP::Aggregatable
 
   def extract_from_resource(resource)
 
-    # query = "SELECT * WHERE {?s ?p ?o}"
     query =  %(
       PREFIX wdata: <https://www.wikidata.org/wiki/Special:EntityData/>
       PREFIX wd: <http://www.wikidata.org/entity/> 
       PREFIX wdt: <http://www.wikidata.org/prop/direct/> 
+      PREFIX wikibase: <http://wikiba.se/ontology-beta#>
       PREFIX schema: <http://schema.org/> 
       PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
       PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
@@ -101,7 +104,9 @@ module LP::Aggregatable
 
         <#{subject_uri}> wdt:P103 ?nativeLanguage.
         ?nativeLanguage schema:name ?nativeLanguageName.
-        
+        ?nativeLanguageProperty wikibase:directClaim wdt:P103.
+        ?nativeLanguageProperty schema:name ?nativeLanguagePropertyName.
+
         <#{subject_uri}> wdt:P1412 ?usedLanguage.
         ?usedLanguage schema:name ?usedLanguageName.
       }
@@ -191,6 +196,14 @@ module LP::Aggregatable
                 || lang(?nativeLanguageName) = "")
         }
         UNION
+        {
+          ?nativeLanguageProperty wikibase:directClaim wdt:P103.
+          ?nativeLanguageProperty schema:name ?nativeLanguagePropertyName.
+          FILTER ( lang(?nativeLanguagePropertyName) = "en" 
+                || lang(?nativeLanguagePropertyName) = "da" 
+                || lang(?nativeLanguagePropertyName) = "")
+        }
+        UNION
         { 
           <#{resource.subject_uri}> wdt:P1412 ?usedLanguage.
           ?usedLanguage schema:name ?usedLanguageName.
@@ -211,6 +224,5 @@ module LP::Aggregatable
     end
 
   end
-
 
 end
