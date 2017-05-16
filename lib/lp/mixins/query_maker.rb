@@ -1,210 +1,127 @@
+##
+# Mixin for generating SPAQRL queries to extract 
+# relevant data from fetched RDF representations.
+#
 module LP::QueryMaker
 
-  SOURCE_URI_ROOTS = [ 
-    'http://www.wikidata.org/', 
-    'https://www.wikidata.org/',
-    'http://viaf.org/',
-    'https://viaf.org/', 
-  ].freeze
+  # class TargetProperty
+  #   attr_reader :uri
 
+  #   def initialize(arg={})
+  #     self.uri = arg[:uri]
+  #     @is_object_property = arg[:is_object_property]
+  #     @is_localized = arg[:is_localized]
+  #   end
+
+  #   def is_localized?
+  #     @is_localized
+  #   end
+
+  #   def is_object_property?
+  #     @is_object_property
+  #   end
+
+  #   def to_s
+  #     self.uri.to_s
+  #   end
+  # end
 
   # TODO: Language sensitive properties should be handled.
-
   TARGET_DATA_PROPERTIES = [ 
     RDF.type,
     RDF::Vocab::SCHEMA.name,
     RDF::Vocab::SCHEMA.description,
-    RDF::Vocab::SKOS.altLabel,
-    LP::Vocab.wdt.P569,
-    LP::Vocab.wdt.P570,
-    LP::Vocab.wdt.P742,
+    RDF::Vocab::SKOS.altLabel,      # Alternative label
+    LP::Vocab.wdt.P569,             # Date of birth
+    LP::Vocab.wdt.P570,             # Date of death
+    LP::Vocab.wdt.P742,             # Pseudonym
   ].freeze
 
   TARGET_OBJECT_PROPERTIES = [ 
-    LP::Vocab.wdt.P19,
-    LP::Vocab.wdt.P20,
-    LP::Vocab.wdt.P21,
-    LP::Vocab.wdt.P27,
-    LP::Vocab.wdt.P103,
-    LP::Vocab.wdt.P106,
-    LP::Vocab.wdt.P1412
+    LP::Vocab.wdt.P19,  # Place of birth
+    LP::Vocab.wdt.P20,  # Place of death
+    LP::Vocab.wdt.P21,  # Gender
+    LP::Vocab.wdt.P27,  # Country of citizenship
+    LP::Vocab.wdt.P103, # Native language
+    LP::Vocab.wdt.P106, # Occupation
+    LP::Vocab.wdt.P1412 # Used language
   ].freeze
 
-  def subclauses_for_data_properties(uri)
+
+  ##
+  # Generates a SPARQL query to extract relevant data
+  # on a resource identified by `target_uri`.  
+  #
+  # @param [RDF::URI, String] target_uri - The URI that identify 
+  # the target resource within the representation.
+  # @return [String] A SPARQL query.
+  def make_sparql_query(target_uri)
+    make_construct_clause + make_where_clause(target_uri)
+  end
+
+  # @private
+  def make_construct_clause
+    "CONSTRUCT { #{make_construct_inner_clause} }"
+  end
+
+  def make_construct_inner_clause
+    construct_subclauses(subject_uri).join(' ')
+  end
+
+  # @private
+  def construct_subclauses(uri)
+    subclauses_for_d_properties(uri) + construct_subclauses_for_o_properties(uri)    
+  end
+
+  # @private
+  def construct_subclauses_for_o_properties(uri)
+    subclauses_for_o_properties(uri, false)
+  end
+
+
+  # @private
+  def make_where_clause(target_uri)
+    "WHERE { #{make_where_inner_clause(target_uri)} }"
+  end
+
+  # @private
+  def make_where_inner_clause(target_uri)
+    where_subclauses(target_uri).map do |s| 
+      "{ #{s} }"
+    end.join(' UNION ')
+  end
+
+  def where_subclauses(uri)
+    subclauses_for_d_properties(uri) + where_subclauses_for_o_properties(uri)    
+  end
+
+  # @private
+  def subclauses_for_d_properties(uri)
     TARGET_DATA_PROPERTIES.map.with_index do |property, index|
-      %({
-        <#{uri}> <#{property}> ?d#{index}.
-
-      })            
+      "<#{uri}> <#{property}> ?d#{index}."            
     end 
   end
 
-def subclauses_for_object_properties(uri)
+  # @private
+  def where_subclauses_for_o_properties(uri)
+    subclauses_for_o_properties(uri, true)
+  end
+
+  # @private
+  def subclauses_for_o_properties(uri, where_subclauses=false)
     TARGET_OBJECT_PROPERTIES.map.with_index do |property, index|
-      %({
-        <#{uri}> <#{property}> ?o#{index}.
-        ?o#{index} <#{RDF::Vocab::SCHEMA.name}> ?on#{index}. 
-      })            
+      name_variable = "?on#{index}"
+      statement = "<#{uri}> <#{property}> ?o#{index}.
+       ?o#{index} <#{RDF::Vocab::SCHEMA.name}> #{name_variable}."
+      
+      if where_subclauses
+        statement += "FILTER ( lang(#{name_variable}) = 'en' 
+                           || lang(#{name_variable}) = 'da' 
+                           || lang(#{name_variable}) = '')"
+      end
+
+      statement 
     end 
   end
-  
-
-  def where_clause
-    %(
-    WHERE {
-
-      { <#{resource.subject_uri}> a ?type. }
-      UNION
-      { 
-        <#{resource.subject_uri}> schema:name ?name.
-        FILTER ( lang(?name) = "en" 
-              || lang(?name) = "da" 
-              || lang(?name) = "")
-      }        
-      UNION
-      { 
-        <#{resource.subject_uri}> schema:description ?description. 
-        FILTER ( lang(?description) = "en" 
-              || lang(?description) = "da" 
-              || lang(?description) = "") 
-      }
-      UNION
-      { <#{resource.subject_uri}> wdt:P18 ?image. }
-      UNION
-      { 
-        <#{resource.subject_uri}> wdt:P19 ?placeOfBirth. 
-        ?placeOfBirth schema:name ?birthPlaceName.
-        FILTER ( lang(?birthPlaceName) = "en" 
-              || lang(?birthPlaceName) = "da" 
-              || lang(?birthPlaceName) = "") 
-      }
-      UNION
-      { 
-        <#{resource.subject_uri}> wdt:P20 ?placeOfDeath. 
-        ?placeOfDeath schema:name ?placeOfDeathName. 
-        FILTER ( lang(?deathPlaceName) = "en" 
-              || lang(?deathPlaceName) = "da" 
-              || lang(?deathPlaceName) = "")          
-      }
-      UNION
-      { 
-        <#{resource.subject_uri}> wdt:P21 ?gender. 
-        ?gender schema:name ?genderName.
-        FILTER ( lang(?genderName) = "en" 
-            || lang(?genderName) = "da" 
-            || lang(?genderName) = "")
-      }
-      UNION
-      { 
-        <#{resource.subject_uri}> wdt:P27 ?countryOfCitizenship. 
-        ?countryOfCitizenship schema:name ?countryOfCitizenshipName.
-        FILTER ( lang(?countryOfCitizenshipName) = "en" 
-              || lang(?countryOfCitizenshipName) = "da" 
-              || lang(?countryOfCitizenshipName) = "")
-      }
-      UNION
-      { <#{resource.subject_uri}> wdt:P569 ?dateOfBirth. }
-      UNION
-      { <#{resource.subject_uri}> wdt:P570 ?dateOfDeath. }
-      UNION
-      { 
-        <#{resource.subject_uri}> wdt:106 ?occupation. 
-        ?occupation schema:name ?occupationName.
-        FILTER ( lang(?occupationName) = "en" 
-              || lang(?occupationName) = "da" 
-              || lang(?occupationName) = "")
-      }
-      UNION
-      { 
-        <#{resource.subject_uri}> skos:altLabel ?asKnownAs. 
-        FILTER ( lang(?asKnownAs) = "en" 
-              || lang(?asKnownAs) = "da" 
-              || lang(?asKnownAs) = "")
-      }
-      UNION
-      { 
-        <#{resource.subject_uri}> wdt:P742 ?pseudonym. 
-        FILTER ( lang(?pseudonym) = "en" 
-              || lang(?pseudonym) = "da" 
-              || lang(?pseudonym) = "")
-      }
-      UNION
-      { 
-        <#{resource.subject_uri}> wdt:P103 ?nativeLanguage. 
-        ?nativeLanguage schema:name ?nativeLanguageName.
-        FILTER ( lang(?nativeLanguageName) = "en" 
-              || lang(?nativeLanguageName) = "da" 
-              || lang(?nativeLanguageName) = "")
-      }
-      UNION
-      {
-        ?nativeLanguageProperty wikibase:directClaim wdt:P103.
-        ?nativeLanguageProperty schema:name ?nativeLanguagePropertyName.
-        FILTER ( lang(?nativeLanguagePropertyName) = "en" 
-              || lang(?nativeLanguagePropertyName) = "da" 
-              || lang(?nativeLanguagePropertyName) = "")
-      }
-      UNION
-      { 
-        <#{resource.subject_uri}> wdt:P1412 ?usedLanguage.
-        ?usedLanguage schema:name ?usedLanguageName.
-        FILTER ( lang(?usedLanguageName) = "en" 
-              || lang(?usedLanguageName) = "da" 
-              || lang(?usedLanguageName) = "")
-
-      }
-      
-    }
-
-    )
-
-  end
-
-
-  def make_sparql_query(source_uri, target_uri)
-
-    query =  %(
-      CONSTRUCT { 
-        <#{subject_uri}> a ?type.
-        <#{subject_uri}> schema:name ?name.
-        <#{subject_uri}> schema:description ?description.
-        <#{subject_uri}> wdt:P18 ?image.
-
-        <#{subject_uri}> wdt:P19 ?placeOfBirth.
-        ?placeOfBirth schema:name ?birthPlaceName.
-        
-        <#{subject_uri}> wdt:P20 ?placeOfDeath.
-        ?deathOfBirth schema:name ?deathPlaceName.
-
-        <#{subject_uri}> wdt:P21 ?gender.
-        ?gender schema:name ?genderName.
-
-        <#{subject_uri}> wdt:P27 ?countryOfCitizenship.
-        ?countryOfCitizenship schema:name ?countryOfCitizenshipName.
-
-        <#{subject_uri}> wdt:P569 ?dateOfBirth.
-        <#{subject_uri}> wdt:P570 ?dateOfDeath.
-        
-        <#{subject_uri}> wdt:106 ?occupation.
-        ?occupation schema:name ?occupationName.
-
-        <#{subject_uri}> skos:altLabel ?asKnownAs.
-
-        <#{subject_uri}> wdt:P742 ?pseudonym.
-
-        <#{subject_uri}> wdt:P103 ?nativeLanguage.
-        ?nativeLanguage schema:name ?nativeLanguageName.
-        ?nativeLanguageProperty wikibase:directClaim wdt:P103.
-        ?nativeLanguageProperty schema:name ?nativeLanguagePropertyName.
-
-        <#{subject_uri}> wdt:P1412 ?usedLanguage.
-        ?usedLanguage schema:name ?usedLanguageName.
-      }
-
-    #{where_clause}
-    )
-
-  end
-
 
 end
