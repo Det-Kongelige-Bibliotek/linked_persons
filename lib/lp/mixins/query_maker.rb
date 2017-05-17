@@ -4,29 +4,6 @@
 #
 module LP::QueryMaker
 
-  # class TargetProperty
-  #   attr_reader :uri
-
-  #   def initialize(arg={})
-  #     self.uri = arg[:uri]
-  #     @is_object_property = arg[:is_object_property]
-  #     @is_localized = arg[:is_localized]
-  #   end
-
-  #   def is_localized?
-  #     @is_localized
-  #   end
-
-  #   def is_object_property?
-  #     @is_object_property
-  #   end
-
-  #   def to_s
-  #     self.uri.to_s
-  #   end
-  # end
-
-  # TODO: Language sensitive properties should be handled.
   TARGET_DATA_PROPERTIES = [ 
     RDF.type,
     RDF::Vocab::SCHEMA.name,
@@ -65,19 +42,14 @@ module LP::QueryMaker
   end
 
   def make_construct_inner_clause
-    construct_subclauses(subject_uri).join(' ')
+    make_construct_patterns(subject_uri).join(' ')
   end
 
   # @private
-  def construct_subclauses(uri)
-    subclauses_for_d_properties(uri) + construct_subclauses_for_o_properties(uri)    
+  def make_construct_patterns(uri)
+    make_patterns_for_d_properties(uri) \
+    + make_patterns_for_o_properties(uri)    
   end
-
-  # @private
-  def construct_subclauses_for_o_properties(uri)
-    subclauses_for_o_properties(uri, false)
-  end
-
 
   # @private
   def make_where_clause(target_uri)
@@ -86,41 +58,43 @@ module LP::QueryMaker
 
   # @private
   def make_where_inner_clause(target_uri)
-    where_subclauses(target_uri).map do |s| 
+    make_where_patterns(target_uri).map do |s| 
       "{ #{s} }"
     end.join(' UNION ')
   end
 
-  def where_subclauses(uri)
-    subclauses_for_d_properties(uri) + where_subclauses_for_o_properties(uri)    
+  def make_where_patterns(uri)
+    make_patterns_for_d_properties(uri, true) \
+    + make_patterns_for_o_properties(uri, true)    
   end
 
   # @private
-  def subclauses_for_d_properties(uri)
+  def make_patterns_for_d_properties(uri, where_patterns=false)
     TARGET_DATA_PROPERTIES.map.with_index do |property, index|
-      "<#{uri}> <#{property}> ?d#{index}."            
+      variable = "?d#{index}"
+      pattern = "<#{uri}> <#{property}> #{variable}."
+      if where_patterns
+        pattern += "FILTER ( lang(#{variable}) = 'en' 
+                          || lang(#{variable}) = 'da' 
+                          || lang(#{variable}) = '')"           
+      end
+      pattern
     end 
   end
 
   # @private
-  def where_subclauses_for_o_properties(uri)
-    subclauses_for_o_properties(uri, true)
-  end
-
-  # @private
-  def subclauses_for_o_properties(uri, where_subclauses=false)
+  def make_patterns_for_o_properties(uri, where_patterns=false)
     TARGET_OBJECT_PROPERTIES.map.with_index do |property, index|
       name_variable = "?on#{index}"
-      statement = "<#{uri}> <#{property}> ?o#{index}.
+      pattern = "<#{uri}> <#{property}> ?o#{index}.
        ?o#{index} <#{RDF::Vocab::SCHEMA.name}> #{name_variable}."
       
-      if where_subclauses
-        statement += "FILTER ( lang(#{name_variable}) = 'en' 
+      if where_patterns
+        pattern += "FILTER ( lang(#{name_variable}) = 'en' 
                            || lang(#{name_variable}) = 'da' 
                            || lang(#{name_variable}) = '')"
       end
-
-      statement 
+      pattern 
     end 
   end
 
