@@ -63,6 +63,7 @@ module LP::QueryMaker
     end.join(' UNION ')
   end
 
+  # @private
   def make_where_patterns(uri)
     make_patterns_for_d_properties(uri, true) \
     + make_patterns_for_o_properties(uri, true)    
