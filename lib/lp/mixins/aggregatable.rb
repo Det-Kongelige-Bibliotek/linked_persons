@@ -37,7 +37,7 @@ module LP::Aggregatable
       # resource = LP::Resource.new(uri, RDF::Repository.new)
       
       begin
-        resource.dereference
+        resource.create_with_persisted_or_dereference
       rescue LP::Errors::AlreadyExists => e
         p e.message
       end
@@ -50,10 +50,7 @@ module LP::Aggregatable
           graph_name: subject_uri)
       end
 
-      t = Time.now
       extract_from_resource(resource)
-      p Time.now - t
-
 
     end 
 

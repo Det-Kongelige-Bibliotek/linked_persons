@@ -1,5 +1,3 @@
-require 'net/http'
-
 ##
 # Mixin for fetching resources identified with URIs. 
 #

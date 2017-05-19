@@ -8,4 +8,5 @@
 class LP::Resource < RDF::LDP::RDFSource
   include LP::Base
   include LP::Dereferencable
+  include LP::Persistable
 end

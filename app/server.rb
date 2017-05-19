@@ -39,7 +39,7 @@ module App
       # <?uri=uri2> a schema:Person;
       #   schema:sameAs <uri2>;
       #   ... (all the compiled data associated is this URI)
-    
+
       relative_uri = /\/persons\/(.*)$/.match(request.url)[1]
 
       uri_param = params[:uri]

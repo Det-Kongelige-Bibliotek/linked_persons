@@ -17,6 +17,8 @@ module LP::Dereferencable
     true
   end
 
+  # TODO: Where is this really needed?
+  # Should we depend on `exists?` instead?      
   def dereferenced?
     @dereferenced ||= false
   end
@@ -28,6 +30,12 @@ module LP::Dereferencable
   #   create(StringIO.new(''), 'text/turtle') unless exists?
   # end
 
+
+  ##
+  # Dereference the resource
+  #
+  # @raise LP::Errors::AlreadyExists - If the resource 
+  # already exists.
   def dereference
     raise LP::Errors::AlreadyExists, subject_uri if exists?
 

@@ -43,4 +43,11 @@ module LP::Errors
       end
   end
 
+  class NotFound < RDF::LDP::NotFound
+      def initialize(uri=nil)
+        msg = "Resource #{(', identified with '+ uri+' ,') if uri} could not be found."
+        super(msg)
+      end
+  end
+
 end

@@ -16,10 +16,11 @@ class LP::Person < RDF::LDP::RDFSource
   # 
   # @return self
   def create_from_uri_str(uri_str)
-
+    
     resource = LP::Resource.new(uri_str, @data)
-    resource.dereference
-    # TODO: Validate
+    
+    resource.create_with_persisted_or_dereference
+
     self.same_as_uris = resource.same_as_uris + [resource.subject_uri]
 
     graph << make_type_triple
