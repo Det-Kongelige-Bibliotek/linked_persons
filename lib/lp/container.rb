@@ -3,20 +3,38 @@
 class LP::Container < RDF::LDP::Container
   include LP::Encoding  
 
+
   ##
-  # Populates the container with the elements to be dereferenced 
-  # from the given URI strings. 
+  # Populates self with the elements identified by the given URI strings,
+  # and saves self if not saved. 
+  #
+  # @param [Array<String>] arg - A URI string or a non-empty array 
+  # of URI strings.
+  #
+  # @return self
+  def fetch_for_uri_strs!(arg)
+    fetch_for_uri_strs(arg)
+    save unless saved?
+    self
+  end
+
+  ##
+  # Populates self with the elements identified by the given URI strings. 
   # 
   # @example
-  #   container = LP::Container.new('http://example.org/my/container', RDF::Repository.new)
-  #   container.create_with_uri_strs(['http://viaf.org/viaf/36915259', 'http://viaf.org/viaf/27203135'])
+  #   container = LP::Container.new('http://example.org/my/container', \
+  #     RDF::Repository.new)
+  #   container.fetch_for_uri_strs(['http://viaf.org/viaf/36915259', \
+  #     'http://viaf.org/viaf/27203135'])
   #
-  # @param [Array<String>] arg - A URI string or an array of URI strings.
+  # @param [Array<String>] arg - A URI string or a non-empty array 
+  # of URI strings.
   #
   # @return self
   #
-  # @raise [LP::BadParameters]
-  def create_from_uri_strs(arg)
+  # @raise [LP::Errors::BadParameters] If the provided arguments cannot be 
+  # processed as an array of URIs.
+  def fetch_for_uri_strs(arg)
 
     uri_strs = Array(arg)
 
@@ -28,7 +46,7 @@ class LP::Container < RDF::LDP::Container
     uri_strs.map do |uri_str|
       person_uri_str = "?uri=#{encode(uri_str)}"
       person = LP::Person.new(person_uri_str, @data)
-      person.create_from_uri_str(uri_str)
+      person.fetch_for_uri_str!(uri_str)
       
     end.each do |person|
       add_element person

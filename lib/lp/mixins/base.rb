@@ -12,6 +12,11 @@ module LP::Base
     end
   end
 
+  ##
+  # Setting the URIs that are identified to be `sameAs` self.
+  # 
+  # @param [Array<RDF::URI>] uris - An array of URIs
+  # identifying self.
   def same_as_uris=(uris)
 
     uris.each do |uri|

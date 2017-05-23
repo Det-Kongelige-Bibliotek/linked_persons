@@ -31,10 +31,22 @@ module LP::Persistable
     metagraph.name.to_s
   end
 
+  ##
+  # Persists the data of the resource
   # TODO: Decide if the meta graph should be persisted.
+  #
+  # @return self 
+  #
+  # @raise LP::Errors::CouldNotBeSaved - If the resource
+  # could not be saved.
   def save
-    redis.set(id, graph.to_ttl)
-    redis.set(meta_id, metagraph.to_ttl)
+    unless redis.set(id, graph.to_ttl) && \
+      redis.set(meta_id, metagraph.to_ttl)
+      
+      raise LP::Errors::CouldNotBeSaved, subject_uri
+    end
+
+    self
   end
 
   def saved?
@@ -47,21 +59,48 @@ module LP::Persistable
   end
 
   ##
-  # Creates the resource with persisted data.
+  # If the resource is saved, fetch it from the
+  # persisted data otherwise dereference and save it.
+  #
+  # @return self
   #
   # @raise LP::Errors::NotFound - Thrown if the 
   # resource could not be found.
-  def create_with_persisted_data
+  #
+  # @raise LP::Errors::AlreadyExists - If the resource 
+  # already fetched.
+  def fetch_from_db_or_dereference!
+    raise LP::Errors::AlreadyExists, subject_uri if exists?
+
+    if saved?
+      fetch_from_db
+    elsif dereferencable?
+      dereference
+      save
+    else
+      raise LP::Errors::NotFound, subject_uri
+    end
+
+    self
+  end
+
+
+  ##
+  # Fetches the resource from persisted data.
+  #
+  # @raise LP::Errors::NotFound - Thrown if the 
+  # resource could not be found.
+  def fetch_from_db
     
     content = redis.get(id)
-    raise LP::Errors::NotFound unless content
+    raise LP::Errors::NotFound, subject_uri unless content
 
     t = Time.now
     # create(StringIO.new(content), 'text/turtle') # Too slow.
     
     create(StringIO.new(''), 'text/turtle')
     
-    RDF::Reader.for(:turtle).new(content)do |reader|
+    RDF::Reader.for(:turtle).new(content) do |reader|
       reader.each_statement do |statement|
         graph << statement
       end
@@ -69,29 +108,6 @@ module LP::Persistable
     
     p Time.now - t
 
-  end
-
-  ##
-  # If the resource is saved, create it with 
-  # the persisted data otherwise dereference 
-  # and save it.
-  #
-  # @raise LP::Errors::NotFound - Thrown if the 
-  # resource could not be found.
-  #
-  # @raise LP::Errors::AlreadyExists - If the resource 
-  # already exists.
-  def create_with_persisted_or_dereference
-    raise LP::Errors::AlreadyExists, subject_uri if exists?
-
-    if saved?
-      create_with_persisted_data
-    elsif dereferencable?
-      dereference
-      save
-    else
-      raise LP::Errors::NotFound
-    end
   end
 
 end

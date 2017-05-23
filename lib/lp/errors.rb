@@ -18,7 +18,7 @@ module LP::Errors
 
   class CouldNotFetch < RDF::LDP::NotFound    
     def initialize(uri=nil)
-      msg = "The data could not fetch from the external endpoint#{(', '+ uri) if uri}."
+      msg = "Could not fetch from the external endpoint#{(', '+ uri) if uri}."
       super(msg)
     end
   end
@@ -36,6 +36,13 @@ module LP::Errors
     end
   end
 
+  class NotFound < RDF::LDP::NotFound
+      def initialize(uri=nil)
+        msg = "Resource #{(', identified with '+ uri+' ,') if uri} could not be found."
+        super(msg)
+      end
+  end
+
   class AlreadyExists < RDF::LDP::RequestError   
       def initialize(uri=nil)
         msg = "Existing resource#{(', identified with '+ uri+' ,') if uri} attempted to be initialized again."
@@ -43,11 +50,12 @@ module LP::Errors
       end
   end
 
-  class NotFound < RDF::LDP::NotFound
+  class CouldNotBeSaved < RDF::LDP::RequestError   
       def initialize(uri=nil)
-        msg = "Resource #{(', identified with '+ uri+' ,') if uri} could not be found."
+        msg = "Resource#{(', identified with '+ uri+' ,') if uri} could not be saved!"
         super(msg)
       end
   end
+
 
 end

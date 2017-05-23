@@ -34,20 +34,20 @@ module App
       #
       # <?uri=uri1> a schema:Person;
       #   schema:sameAs <uri1>;
-      #   ... (all the compiled data associated is this URI)
+      #   ... (all the aggregated data associated is this URI)
       #
       # <?uri=uri2> a schema:Person;
       #   schema:sameAs <uri2>;
-      #   ... (all the compiled data associated is this URI)
+      #   ... (all the aggregated data associated is this URI)
 
       relative_uri = /\/persons\/(.*)$/.match(request.url)[1]
 
       uri_param = params[:uri]
       case uri_param
       when String then
-        LP::Person.new(relative_uri).create_from_uri_str(uri_param)
+        LP::Person.new(relative_uri).fetch_for_uri_str!(uri_param)
       when Array then 
-        LP::Container.new(relative_uri).create_from_uri_strs(uri_param)  
+        LP::Container.new(relative_uri).fetch_for_uri_strs!(uri_param)  
       else
         raise LP::Errors::BadParameters
       end 

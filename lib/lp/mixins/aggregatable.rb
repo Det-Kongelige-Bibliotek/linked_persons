@@ -37,7 +37,7 @@ module LP::Aggregatable
       # resource = LP::Resource.new(uri, RDF::Repository.new)
       
       begin
-        resource.create_with_persisted_or_dereference
+        resource.fetch_from_db_or_dereference!
       rescue LP::Errors::AlreadyExists => e
         p e.message
       end
