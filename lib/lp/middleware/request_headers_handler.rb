@@ -22,8 +22,6 @@ module LP
       "*/*",
     ].freeze
 
-    SUPPORTED_CONTENT_TYPES = ["application/ld+json","application/*","text/turtle","text/*","*/*",]
-
     def initialize(app)
       @app = app
     end
