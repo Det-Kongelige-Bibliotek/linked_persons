@@ -23,3 +23,6 @@ require_relative 'lp/mixins/aggregatable'
 require_relative 'lp/resource'
 require_relative 'lp/person'
 require_relative 'lp/container'
+
+require_relative 'lp/middleware/response_headers_handler'
+require_relative 'lp/middleware/request_headers_handler'

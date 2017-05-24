@@ -8,7 +8,13 @@ require_relative '../lib/linked_persons'
 module App
   class Server < Sinatra::Base
     
-    use Rack::LDP::ContentNegotiation
+    use LP::ResponseHeadersHandler
+    use LP::RequestHeadersHandler
+
+    # The following middleware cannot handle 
+    # "Accept: application/json, text/plain, */*"
+    use Rack::LDP::ContentNegotiation 
+    # use Rack::LinkedData::ContentNegotiation
     use Rack::LDP::Errors
     use Rack::LDP::Responses
     use Rack::LDP::Requests
