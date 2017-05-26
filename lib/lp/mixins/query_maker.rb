@@ -9,6 +9,7 @@ module LP::QueryMaker
     RDF::Vocab::SCHEMA.name,
     RDF::Vocab::SCHEMA.description,
     RDF::Vocab::SKOS.altLabel,      # Alternative label
+    LP::Vocab.wdt.P18,              # Image
     LP::Vocab.wdt.P569,             # Date of birth
     LP::Vocab.wdt.P570,             # Date of death
     LP::Vocab.wdt.P742,             # Pseudonym
@@ -74,7 +75,11 @@ module LP::QueryMaker
     TARGET_DATA_PROPERTIES.map.with_index do |property, index|
       variable = "?d#{index}"
       pattern = "<#{uri}> <#{property}> #{variable}."
-      if where_patterns
+      
+      # Not appending a language filter for the image property,
+      # as it links to URLs and the filter prevents the pattern 
+      # from matching.
+      if where_patterns && property != LP::Vocab.wdt.P18
         pattern += "FILTER ( lang(#{variable}) = 'en' 
                           || lang(#{variable}) = 'da' 
                           || lang(#{variable}) = '')"           
