@@ -2,7 +2,7 @@
 #
 class LP::Container < RDF::LDP::Container
   include LP::Encoding  
-
+  include LP::Persistable
 
   ##
   # Populates self with the elements identified by the given URI strings,
