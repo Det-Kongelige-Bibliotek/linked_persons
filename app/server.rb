@@ -1,6 +1,7 @@
 Bundler.require
 
 require 'sinatra'
+require 'thin'
 require 'rack/ldp'
 require 'net/http'
 require_relative '../lib/linked_persons'
@@ -8,6 +9,13 @@ require_relative '../lib/linked_persons'
 module App
   class Server < Sinatra::Base
     
+    configure do
+      set :environment, :production
+      set :bind, '0.0.0.0'
+      set :port, 443
+      set :server, "thin"
+    end
+
     use LP::ResponseHeadersHandler
     use LP::RequestHeadersHandler
 
