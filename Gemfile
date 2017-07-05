@@ -13,3 +13,7 @@ gem 'rdf-ldp', '~> 0.9.3'
 gem 'redis', '~>3.2'
 
 gem 'byebug'
+
+group :test do
+  gem 'rspec', '~> 3.6.0'
+end
