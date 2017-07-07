@@ -33,10 +33,10 @@ module App
       # ERB::Util.url_encode("http://viaf.org/viaf/36915259")
       # URI.unescape("http%3A%2F%2Fviaf.org%2Fviaf%2F36915259")
       # Example request
-      #   http://0.0.0.0:9292?uri[]=http%3A%2F%2Fviaf.org%2Fviaf%2F36915259&uri[]=http%3A%2F%2Fviaf.org%2Fviaf%2F27203135
-      #   curl -ig http://0.0.0.0:9292/persons/?uri[]="http%3A%2F%2Fviaf.org%2Fviaf%2F36915259"\&uri[]="http%3A%2F%2Fviaf.org%2Fviaf%2F27203135"
-      #   curl -ig http://0.0.0.0:9292/persons/?uri="http%3A%2F%2Fviaf.org%2Fviaf%2F36915259"
-      #   curl -ig http://0.0.0.0:9292/persons/?uri="http%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ1607626"
+      #   https://0.0.0.0?uri[]=http%3A%2F%2Fviaf.org%2Fviaf%2F36915259&uri[]=http%3A%2F%2Fviaf.org%2Fviaf%2F27203135
+      #   curl -igk https://0.0.0.0/persons/?uri[]="http%3A%2F%2Fviaf.org%2Fviaf%2F36915259"\&uri[]="http%3A%2F%2Fviaf.org%2Fviaf%2F27203135"
+      #   curl -igk https://0.0.0.0/persons/?uri="http%3A%2F%2Fviaf.org%2Fviaf%2F36915259"
+      #   curl -igk https://0.0.0.0/persons/?uri="http%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ1607626"
       #
       ###################################
       #       Example transaction       #

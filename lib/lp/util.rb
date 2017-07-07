@@ -1,12 +1,13 @@
 ##
 # Some utility methods.
 #
-module LP::Util
-  class << self
- 
+module LP
+  module Util
+    module_function
+     
     # Erase all the persisted data. 
     def flush_data
-      LP::REDIS.flushall
+      REDIS.flushall
     end
 
   end
